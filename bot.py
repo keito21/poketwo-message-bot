@@ -4,6 +4,7 @@ import random
 import os
 
 TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -23,21 +24,39 @@ messages = [
     "🤣"
 ]
 
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
-    auto_message.start()
+
+    if not auto_message.is_running():
+        auto_message.start()
+
 
 @tasks.loop(seconds=45)
 async def auto_message():
-    channel_id = os.getenv("CHANNEL_ID")
-
-    if not channel_id:
+    if not CHANNEL_ID:
+        print("ERROR: CHANNEL_ID is missing.")
         return
 
-    channel = bot.get_channel(int(channel_id))
+    try:
+        channel = bot.get_channel(int(CHANNEL_ID))
 
-    if channel:
+        if channel is None:
+            print(f"ERROR: Cannot find channel {CHANNEL_ID}")
+            return
+
+        print(f"Sending message to #{channel.name}")
         await channel.send(random.choice(messages))
+        print("Message sent successfully.")
+
+    except Exception as e:
+        print(f"ERROR: {type(e).__name__}: {e}")
+
+
+@auto_message.before_loop
+async def before_auto_message():
+    await bot.wait_until_ready()
+
 
 bot.run(TOKEN)
