@@ -33,7 +33,7 @@ async def on_ready():
         auto_message.start()
 
 
-@tasks.loop(seconds=10)
+@tasks.loop(seconds=5)
 async def auto_message():
     if not CHANNEL_ID:
         print("ERROR: CHANNEL_ID is missing.")
